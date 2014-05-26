@@ -1,0 +1,33 @@
+
+.qt-video-thumb{
+	margin-left: 0;
+	border: 2px solid #c03636;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	float: left;
+	margin-right: 8px;
+	margin-top: 4px;
+	position: relative;
+}
+
+.qt-thumb {
+	width: 100%;
+	overflow: hidden;
+	background: #f1f1f1;
+	font-size: 0;
+	vertical-align: middle;
+	display: inline-block;
+}
+
+.qt-thumb-64 {
+	width: 64px;
+}
+.qt-thumb-default {
+	padding-bottom: 56.25%;
+	display: block;
+	height: auto;
+}
+
+.qt-thumb-clip {
+	position: absolute;
+}
