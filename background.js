@@ -1,9 +1,9 @@
 /*function onInstall() {
-    console.log("Extension Installed");
+    //console.log("Extension Installed");
   }
 
   function onUpdate() {
-    console.log("Extension Updated");
+    //console.log("Extension Updated");
   }
 
   function getVersion() {
@@ -142,7 +142,7 @@ function shuffle(o){
     return o;
 };
 
-console.log("extension started");
+//console.log("extension started");
 var ytTabs = [];
 var queue = new Queue();
 var primaryTabId;
@@ -172,66 +172,67 @@ function isVideoPage(url){
 
 chrome.runtime.onMessage.addListener(function(msg,sender,sendResponse) {
 	if(msg.type=="registerTab"){
-		console.log("registering tab:")
-		console.log(sender.tab);
+		//console.log("registering tab:")
+		//console.log(sender.tab);
 		registerTab(sender.tab.id);		
 	} else if(msg.type=="showWelcome"){
 		showWelcomePage();
 	} else if(msg.type=="addVideo"){
-		console.log("received request to add video");
-		addVideoToQueue(msg.video_id,sender.tab.id);
-		console.log("video added");
+		//console.log("received request to add video");
+		handleVideoAdd(msg.video_id,sender.tab);
+		//addVideoToQueue(msg.video_id,sender.tab.id);
+		//console.log("video added");
 	} else if(msg.type=="noti"){
-		console.log("creating notification");
-		console.log(msg.link);
+		//console.log("creating notification");
+		//console.log(msg.link);
 		//createNoti();
 	} else if(msg.type=="removeVideo"){
-		console.log("received request to remove video");
+		//console.log("received request to remove video");
 		removeVideoFromQueue(msg.video_id);
-		console.log("video removed");
+		//console.log("video removed");
 	} else if(msg.type=="getQueue"){
-		console.log("received request to get queue");
+		//console.log("received request to get queue");
 		sendResponse({"data":queue});
 	} else if(msg.type=="next"){
-		console.log("received request for ### play next video ####");
+		//console.log("received request for ### play next video ####");
 		if(isNext()){
 			msg.data = getNextVideo();
 			chrome.tabs.sendMessage(primaryTabId,msg, function(res){
 			
 			});	
 		} else {
-			console.log("No more videos: reached the end of queue");
+			//console.log("No more videos: reached the end of queue");
 		}
 		
 		//sendResponse({"data":queue});
 	} else if(msg.type=="previous"){
-		console.log("received request for ### play previous video ###");
+		//console.log("received request for ### play previous video ###");
 		if(isPrevious()){
 			msg.data = getPreviousVideo();
 			chrome.tabs.sendMessage(primaryTabId,msg, function(res){
 			
 			});
 		} else {
-			console.log("No more video: reached the start of queue");	
+			//console.log("No more video: reached the start of queue");	
 		}
 		//sendResponse({"data":queue});
 	} else if(msg.type=="currentVideoInfo"){
-		console.log("received request for ### current video info ###");
+		//console.log("received request for ### current video info ###");
 		if(current!=undefined){
 			sendResponse({"data":getCurrentVideo()});
 		} else {
-			console.log("No current video");	
+			//console.log("No current video");	
 		}
 	} else {
-		console.log("unknown msg type received ");
+		//console.log("unknown msg type received ");
 	}
 });
 
 function registerTab(id){
 	if(hasKey(ytTabs,id)) return;
 	ytTabs.push(id);	
-	console.log("current tabs with youtube videos");
-	console.log(ytTabs);
+	//console.log("current tabs with youtube videos");
+	//console.log(ytTabs);
 }
 
 function removeFromArray(array, ele){
@@ -250,11 +251,11 @@ function addVideoToQueue(videoId,tabId){
 		return;
 	}
 	lock=true;
-	console.log("tab playing the queue "+primaryTabId);
-	console.log("tabs with youtube video open");
-	console.log(ytTabs);
-	console.log("current queue");
-	console.log(queue);
+	//console.log("tab playing the queue "+primaryTabId);
+	//console.log("tabs with youtube video open");
+	//console.log(ytTabs);
+	//console.log("current queue");
+	//console.log(queue);
 
 	var x = new XMLHttpRequest();
 	x.open("GET","http://gdata.youtube.com/feeds/api/videos/"+videoId+"?v=2&alt=jsonc",true);
@@ -263,8 +264,8 @@ function addVideoToQueue(videoId,tabId){
 			if(x.status == 200) {
 				var video =JSON.parse(x.responseText).data;
 				queue.addVideo(video);
-				console.log("queue after adding video");
-				console.log(queue);
+				//console.log("queue after adding video");
+				//console.log(queue);
 				if(primaryTabId==undefined) setPrimaryTab(tabId);
 				var msg={"type":"videoAdded","queue":queue,"video":video};
 				if(primaryTabId!=undefined) {
@@ -280,19 +281,19 @@ function addVideoToQueue(videoId,tabId){
 
 var insertVideo = function (info) {
 	queue.addVideo(info.data);
-	console.log("queue after adding video");
-	console.log(queue);
+	//console.log("queue after adding video");
+	//console.log(queue);
 	if(primaryTabId==undefined) setPrimaryTab(tabId);
 };
 
 
 function removeVideoFromQueue(id){
 
-	console.log("tab playing the queue"+primaryTabId);
-	console.log("tabs with youtube video open");
-	console.log(ytTabs);
-	console.log("cuurent queue");
-	console.log(queue);
+	//console.log("tab playing the queue"+primaryTabId);
+	//console.log("tabs with youtube video open");
+	//console.log(ytTabs);
+	//console.log("cuurent queue");
+	//console.log(queue);
 
 	queue.deleteVideo(id);
 	if(primaryTabId!=undefined){
@@ -301,15 +302,15 @@ function removeVideoFromQueue(id){
 					
 			});	
 	}
-	console.log("queue after removing video");
-	console.log(queue);
+	//console.log("queue after removing video");
+	//console.log(queue);
 }
 
 function setPrimaryTab(id){
-	console.log("setting primary tab to : "+id);
+	//console.log("setting primary tab to : "+id);
 	primaryTabId=id;
 	if (queue.size()>0 && queue.getCurrentIndex()==-1) {
-		console.log("setting current to 0");
+		//console.log("setting current to 0");
 		queue.setCurrentIndex(0);
 	};
 }
@@ -318,15 +319,15 @@ function setPrimaryTab(id){
 function pollPrimaryTab(){
 	if(primaryTabId!=undefined && primaryTabId!=null){
 		chrome.tabs.get(primaryTabId, function (tab){
-			console.log(tab);
+			//console.log(tab);
 			if(tab!=undefined){
 			 	if(tab.status!="loading"){
-					console.log("not loading")
+					//console.log("not loading")
 					var msg={"type":"status"};
 					chrome.tabs.sendMessage(primaryTabId,msg, function(res){
-						console.log('response')
-						console.log(res);
-						console.log("tries: "+tries);
+						//console.log('response')
+						//console.log(res);
+						//console.log("tries: "+tries);
 						if((res==undefined || !res.status)){
 							if(tries==1){
 								reset();
@@ -339,7 +340,7 @@ function pollPrimaryTab(){
 					});
 				}
 			} else{
-				console.log("undefined tab")
+				//console.log("undefined tab")
 				if(tries==1){
 					reset();
 				} else{
@@ -354,11 +355,14 @@ function pollPrimaryTab(){
 
 function reset(){
 	tries=0;
-	console.log("reseting queue");
+	//console.log("reseting queue");
 	primaryTabId=undefined;
 	queue.reset();
 }
 
+function getPrimaryTabStatus(){
+
+}
 
 var contextMenuAddProp={
 	title:"Add to Queue",
@@ -367,21 +371,7 @@ var contextMenuAddProp={
 	'onclick': function (onClickData,tab) {
         var url = onClickData.linkUrl;
 		var videoId = getVideoIdFromUrl(url);
-		console.log("Video to be added from right click menu: "+videoId);
-		
-		if(primaryTabId==undefined){
-			if(isVideoPage(tab.url)){
-				addVideoToQueue(getVideoIdFromUrl(tab.url),tab.id);
-				addVideoToQueue(videoId,tab.id);
-			} else{
-				addVideoToQueue(videoId,undefined);
-				chrome.tabs.create({url:"http://youtube.com/watch?v="+videoId+"&qq=1"}, function(tab){
-					setPrimaryTab(tab.id);
-				});
-			}
-		} else{
-			addVideoToQueue(videoId,undefined);
-		}
+		handleVideoAdd(videoId,tab);
 	}
 };
 var contextMenuRemProp={
@@ -391,7 +381,7 @@ var contextMenuRemProp={
 	'onclick': function (onClickData) {
         var url = onClickData.linkUrl;
 		var videoId = getVideoIdFromUrl(url);
-		console.log("Video to be removed from right click menu: "+videoId);
+		//console.log("Video to be removed from right click menu: "+videoId);
 		removeVideoFromQueue(videoId);
 	}
 };
@@ -405,7 +395,7 @@ chrome.contextMenus.create(contextMenuRemProp, function(){
 });
 
 chrome.commands.onCommand.addListener(function(command) {
-    console.log('Command:', command);
+    //console.log('Command:', command);
     if(primaryTabId==undefined) return;
     if(command=='play-pause-video'){
     	var msg={"type":"toggle"};
@@ -414,7 +404,7 @@ chrome.commands.onCommand.addListener(function(command) {
     } else if(command=='play-previous-video') {
     	var msg = {"type":"previous"};
     } else {
-    	console.log('unknown command');
+    	//console.log('unknown command');
     	return;
     }
     chrome.tabs.sendMessage(primaryTabId,msg, function(res){});
@@ -425,6 +415,50 @@ function showWelcomePage(){
 	try{
 		chrome.tabs.create({url:chrome.extension.getURL('welcome.html')});
 	}catch(e){
-		console.log(e);
+		//console.log(e);
+	}
+}
+
+
+function handleVideoAdd(videoId,videoTab){
+	//console.log("Video to be added from right click menu: "+videoId);
+	if(primaryTabId!=undefined){
+		chrome.tabs.get(primaryTabId, function (tab){
+			//console.log(tab);
+			if(tab==undefined){
+				reset();
+				doAdd(videoId,videoTab);
+			} else if(tab.status=="loading"){
+				setTimeout(function(){handleVideoAdd(videoId,videoTab)},2000);
+				return;
+			} else{
+					//console.log("not loading");
+					var msg={"type":"status"};
+					chrome.tabs.sendMessage(primaryTabId,msg, function(res){
+						if(res==undefined || !res.status){
+							reset();
+						}
+						doAdd(videoId,videoTab);
+					});
+				}
+		});
+	} else {
+		doAdd(videoId,videoTab);
+	}
+}
+
+function doAdd(videoId,videoTab){
+	if(primaryTabId==undefined){
+		if(isVideoPage(videoTab.url)){
+			addVideoToQueue(getVideoIdFromUrl(videoTab.url),videoTab.id);
+			addVideoToQueue(videoId,videoTab.id);
+		} else{
+			addVideoToQueue(videoId,undefined);
+			chrome.tabs.create({url:"http://youtube.com/watch?v="+videoId+"&qq=1"}, function(tab){
+				setPrimaryTab(tab.id);
+			});
+		}
+	} else{
+		addVideoToQueue(videoId,undefined);
 	}
 }
