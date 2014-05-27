@@ -45,6 +45,20 @@ Queue.prototype.getVideo = function(index) {
 	return this.videos[index];
 };
 
+Queue.prototype.getNextVideoFrom =function(video_id){
+	if(this.size()<=0) return undefined;
+	var index = this.getVideoIndex(video_id);
+	if(this.getVideo(index+1)!=undefined) return this.getVideo(index+1);
+	else return this.getVideo(0);
+} 
+
+Queue.prototype.getPreviousVideoFrom =function(video_id){
+	if(this.size()<=0) return undefined;
+	var index = this.getVideoIndex(video_id);
+	if(this.getVideo(index-1)!=undefined) return this.getVideo(index-1);
+	else return this.getVideo(this.size()-1);
+} 
+
 Queue.prototype.getCurrentIndex = function() {
 	return this.currentIndex;
 };
@@ -200,15 +214,16 @@ function registerMsgListener(){
 			}
 		} else if(msg.type=="videoDeleted"){
 			try{
-				var reload = false;
+				var reload = false; var nextVid="";
 				console.log(currentQueue.getCurrentVideo());
-				if(currentQueue.getCurrentVideo().id==msg.video_id){
+				if(getVideoIdFromUrl()==msg.video_id){
 					reload=true;
+					nextVid=currentQueue.getNextVideoFrom(msg.video_id).id;
 				}
 				currentQueue.setVideos(msg.queue.videos);
 				console.log("received request to delete a video ####");
 				deleteVideoFromSkin(msg.video_id);
-				if(reload) reloadTab();
+				if(reload) reloadTab(nextVid);
 			}catch(e){
 				console.log(e);
 			}
@@ -478,7 +493,7 @@ function getRemoveButton(video_id){
 
 function getVideoLink(video_id,video_index,video_title,user){
 	var a = document.createElement('a')
-	a.href="/watch?v="+video_id+'&qq=1&vi='+video_index
+	a.href="/watch?v="+video_id+'&qq=1';
 	a.className="playlist-video clearfix spf-link"
 	a.appendChild(getRemoveButton(video_id))
 	a.appendChild(getThumb(video_id))
@@ -634,7 +649,11 @@ function load(force){
 	if(currentQueue.size()<=0) return;
 	var skin = document.getElementById('watch-appbar-playlist');
 	if(skin!=null || skin!= undefined) return;
-	var index=params['vi'];
+	
+	//do not need index
+	//var index=params['vi'];
+	var index=currentQueue.getVideoIndex(getVideoIdFromUrl());
+
 	if(index==undefined) index=0;
 	currentQueue.setCurrentIndex(parseInt(index));
 	insertQueueSkin();
@@ -687,10 +706,10 @@ function refreshNextButton(){
 	try{
 		var controls = document.getElementsByClassName('playlist-behavior-controls')[0];
 		var a =controls.getElementsByTagName('a')[1];
-		var index = currentQueue.getCurrentIndex();
+		/*var index = currentQueue.getCurrentIndex();
 		if(currentQueue.hasNext()) index++;
-		else index=0;
-		a.href='https://www.youtube.com/watch?v='+currentQueue.getVideo(index).id+'&qq=1&vi='+index;
+		else index=0;*/
+		a.href='https://www.youtube.com/watch?v='+currentQueue.getNextVideoFrom(getVideoIdFromUrl()).id+'&qq=1';
 	}catch(e){
 		console.log(e);
 	}
@@ -700,10 +719,10 @@ function refreshPreviousButton(){
 	try{
 		var controls = document.getElementsByClassName('playlist-behavior-controls')[0];
 		var a =controls.getElementsByTagName('a')[0];
-		var index = currentQueue.getCurrentIndex();
+		/*var index = currentQueue.getCurrentIndex();
 		if(currentQueue.hasPrevious()) index--;
-		else index=currentQueue.size()-1;
-		a.href='https://www.youtube.com/watch?v='+currentQueue.getVideo(index).id+'&qq=1&vi='+index;
+		else index=currentQueue.size()-1;*/
+		a.href='https://www.youtube.com/watch?v='+currentQueue.getPreviousVideoFrom(getVideoIdFromUrl()).id+'&qq=1';
 	}catch(e){
 		console.log(e);
 	}
@@ -812,9 +831,9 @@ function pauseVideo(){
 	}
 }
 
-function reloadTab(){
+function reloadTab(video_id){
 	console.log("Reloading this tab");
-	window.location.href=window.location.href;
+	window.location.href='https://www.youtube.com/watch?v='+video_id+'&qq=1';
 }
 
 function insertWelcomePageUrl(){

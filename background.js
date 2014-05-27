@@ -375,7 +375,7 @@ var contextMenuAddProp={
 				addVideoToQueue(videoId,tab.id);
 			} else{
 				addVideoToQueue(videoId,undefined);
-				chrome.tabs.create({url:"http://youtube.com/watch?v="+videoId+"&qq=1&vi=0"}, function(tab){
+				chrome.tabs.create({url:"http://youtube.com/watch?v="+videoId+"&qq=1"}, function(tab){
 					setPrimaryTab(tab.id);
 				});
 			}
