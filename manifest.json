@@ -41,7 +41,7 @@
   "name": "qTube (Beta!)",
   "short_name": "qTube",
   "description": "Get more out of Youtube, use it as a music player! qTube allows u to add/play videos in temporary queue",
-  "version": "1.1",
+  "version": "1.2",
 "icons": {
       "128": "icon.png",
       "16": "icon.png",
