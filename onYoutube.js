@@ -148,10 +148,10 @@ var videoStatus = {
 
 function outerPoll(){
 	if(isVideoPage()){
-			console.log("A video Page: running script");	
+			//console.log("A video Page: running script");	
 			runScript();
 	} else{
-		console.log("Not a video Page");
+		//console.log("Not a video Page");
 		setTimeout(outerPoll,1000);
 	}	
 }
@@ -196,13 +196,13 @@ function registerTab(){
 function registerMsgListener(){
 	chrome.runtime.onMessage.addListener(function(msg,sender,sendResponse) {
 		if(msg.type=="toggle"){
-			console.log("received request to pause");
+			//console.log("received request to pause");
 			toggleVideo();
 		} else if(msg.type=="next"){
-			console.log("received request for ### play next video ####");
+			//console.log("received request for ### play next video ####");
 			loadNextVideo();
 		} else if(msg.type=="previous"){
-			console.log("received request for ### play [previous] video ####");
+			//console.log("received request for ### play [previous] video ####");
 			loadPreviousVideo();
 		} else if(msg.type=="videoAdded"){
 			try{
@@ -242,7 +242,7 @@ function getStatus(){
 }
 
 function poll(){
-	console.log('polling');
+	//console.log('polling');
 	var v = document.getElementById('addToQueue');
 	insertAddToQueueOption();
 	setTimeout(poll,1000);
@@ -293,7 +293,7 @@ function insertAddToQueueOption(){
 			text = Prop.ADD_TO_QUEUE;
 			src = Prop.ADD_TO_QUEUE_ICON_URL;
 		}
-		console.log('adding Queue option');
+		//console.log('adding Queue option');
 		var span=document.getElementById('addToQueue');
 		if(span==undefined){
 			span = document.createElement('span');
@@ -317,7 +317,7 @@ function insertAddToQueueOption(){
 		}
 		registerAddQueueListener();
 	} catch(e){
-		console.log(e);
+		//console.log(e);
 	}		
 }
 
@@ -346,7 +346,7 @@ function getCurrentQueue(){
 		var msg={"type":"getQueue"};
 		chrome.runtime.sendMessage(msg,function(response){
 			setCurrentQueue(response.data);
-			console.log(currentQueue);
+			//console.log(currentQueue);
 		});
 	}catch(e){
 		console.log(e);
@@ -359,7 +359,7 @@ function setCurrentQueue(queue){
 
 function insertAddToQueueOptionOnVideos(){
 	if(currentQueue==undefined){
-		console.log('undefined currentQueue');
+		//console.log('undefined currentQueue');
 		getCurrentQueue();
 		setTimeout(insertAddToQueueOptionOnVideos,Prop.ADD_TO_QUEUE_INSERT_POLL_TIME);
 		return;
@@ -569,12 +569,12 @@ function getNextButton(){
 	try{
 		var a= document.createElement('a')
 		var index = currentQueue.getCurrentIndex();
-		console.log(currentQueue)
+		//console.log(currentQueue)
 		if(currentQueue.hasNext()) {
 			index++;
 		}
 		else {
-			console.log('returned value of hasNext:'+currentQueue.hasNext())
+			//console.log('returned value of hasNext:'+currentQueue.hasNext())
 			index=0;
 		}
 		a.href='#';
@@ -753,15 +753,15 @@ injectScript = function(newState) {
 }
 
 function registerAutoPlay(){
-	console.log('registering auto play');
+	//console.log('registering auto play');
 	mv = document.getElementsByTagName('video')
 	if(mv.length>0) {
 		mv=mv[0];
 		if(mv==undefined || mv==null) {
-			console.log('undefined movie player');
+			//console.log('undefined movie player');
 			return;
 		}
-		console.log('html5 player found');
+		//console.log('html5 player found');
 		player = Player.HTML5;
 		mv.onended=function aaa(){
 			console.log('video ended### starting next');
@@ -771,14 +771,14 @@ function registerAutoPlay(){
 	else {
 		mv = document.getElementById('movie_player')
 		if(mv==undefined || mv==null) {
-			console.log('undefined movie player');
+			//console.log('undefined movie player');
 			return;
 		}
-		console.log('flash player found');
+		//console.log('flash player found');
 		player=Player.FLASH;
 		mv.addEventListener("onStateChange", "myplayerstateChnage");
 		injectScript();
-		console.log('event registerd')
+		//console.log('event registerd')
 	}
 	setTimeout(registerAutoPlay,20000)
 }
