@@ -48,7 +48,7 @@
       "32": "icon.png",
       "48": "icon.png"
    },
- "web_accessible_resources": [ "right.png","icon.png"],
+ "web_accessible_resources": [ "right.png","icon.png","img/progress.gif"],
 "permissions": [
    
 	"tabs","http://*.youtube.com/*","https://*.youtube.com/*","contextMenus","notifications"

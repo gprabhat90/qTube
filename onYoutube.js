@@ -1,11 +1,14 @@
 var Prop = {
 	"ADD_TO_QUEUE":"Add To Queue",
 	"REMOVE_FROM_QUEUE":"Added",
+	"ADDING_TO_QUEUE":"Adding",
+	"REMOVING_FROM_QUEUE":"Removing",
 	"ADD_TO_QUEUE_ICON_URL":chrome.extension.getURL("icon.png"),
 	"REMOVE_FROM_QUEUE_ICON_URL":chrome.extension.getURL("right.png"),
 	"ADD_TO_QUEUE_INSERT_POLL_TIME":2000,
 	"ADD_TO_QUEUE_TITLE":"Add to Queue",
 	"REMOVE_FROM_QUEUE_TITLE":"Remove from Queue",
+	"PROGRESS_ICON_URL":chrome.extension.getURL("img/progress.gif"),
 	"WELCOME_PAGE":chrome.extension.getURL("welcome.html")
 }
 
@@ -143,15 +146,17 @@ function shuffle(o){
 
 var videoStatus = {
 	"QUEUED":1,
-	"NOT_QUEUED":0
+	"NOT_QUEUED":0,
+	"ADDING":2,
+	"REMOVING":3
 }
 
 function outerPoll(){
 	if(isVideoPage()){
-			//console.log("A video Page: running script");	
+			console.log("A video Page: running script");	
 			runScript();
 	} else{
-		//console.log("Not a video Page");
+		console.log("Not a video Page");
 		setTimeout(outerPoll,1000);
 	}	
 }
@@ -165,12 +170,14 @@ function isVideoPage(){
 function runScript(){
 	registerTab();	
 	currentQueuePoll();
-	//poll();
 	registerMsgListener();
 	insertAddToQueueOptionOnVideos();
 	load(false);
 }
 
+
+//instead of polling the changes in queue from backgroud, background should publish the queue changes
+// and content script should be a subscriber
 function currentQueuePoll(){
 	if(currentQueue==undefined){
 		getCurrentQueue();
@@ -227,7 +234,6 @@ function registerMsgListener(){
 			}catch(e){
 				console.log(e);
 			}
-
 		} else if(msg.type=="status"){
 			sendResponse({"status":getStatus()});
 		} else {
@@ -241,34 +247,32 @@ function getStatus(){
 	return skin!=undefined;
 }
 
-function poll(){
-	//console.log('polling');
-	var v = document.getElementById('addToQueue');
-	insertAddToQueueOption();
-	setTimeout(poll,1000);
-}
-
 function registerAddQueueListener(){
 	var text = document.getElementById('addToQueueText');
 	var icon = document.getElementById('queue-icon');
 	var a = document.getElementById('addToQueue');
 	if(a!=undefined && a!=null){
 		a.onclick = function(){
-			if(text.innerText===Prop.ADD_TO_QUEUE){
+
+			if(this.getAttribute('status')==videoStatus.ADDING || this.getAttribute('status')==videoStatus.REMOVING)
+				return;
+
+			if(this.getAttribute('status')==videoStatus.NOT_QUEUED){
 				addVideoToQueue(getVideoIdFromUrl());
-				text.innerText=Prop.REMOVE_FROM_QUEUE;
-				icon.src=Prop.REMOVE_FROM_QUEUE_ICON_URL;			
+				this.setAttribute('status',videoStatus.ADDING);	
+				text.innerText=Prop.ADDING_TO_QUEUE;			
 			} else {
 				removeVideoFromQueue(getVideoIdFromUrl());
-				text.innerText=Prop.ADD_TO_QUEUE;
-				icon.src=Prop.ADD_TO_QUEUE_ICON_URL;			
+				this.setAttribute('status',videoStatus.NOT_QUEUED);
+				text.innerText=Prop.REMOVING_FROM_QUEUE;		
 			}
+			icon.src=Prop.PROGRESS_ICON_URL;
 		}
 	}
 }
 
 function addVideoToQueue(video_id){
-	var msg = {"type":"addVideo","video_id":video_id};
+	var msg = {type:"addVideo",video_id:video_id};
 	sendMsgTobg(msg);
 }
 
@@ -284,37 +288,45 @@ function sendMsgTobg(msg){
 function insertAddToQueueOption(){
 	try{
 		
-		var text="",src="";
-		if(currentQueue.hasVideo(getVideoIdFromUrl())) {
-			text = Prop.REMOVE_FROM_QUEUE;
-			src = Prop.REMOVE_FROM_QUEUE_ICON_URL;
-		}
-		else {
-			text = Prop.ADD_TO_QUEUE;
-			src = Prop.ADD_TO_QUEUE_ICON_URL;
-		}
-		//console.log('adding Queue option');
 		var span=document.getElementById('addToQueue');
 		if(span==undefined){
 			span = document.createElement('span');
 			span.id='addToQueue';
 			span.style="margin-left:10px; cursor:pointer;";
 			span.className="yt-uix-button yt-uix-button-text yt-uix-button-size-default yt-uix-button-has-icon yt-uix-tooltip yt-uix-button-empty";
-			span.innerHTML = '<span class="yt-uix-button-icon" style="width: 20px; height: 23px; margin-right: 3px; "><label style="position: absolute; bottom: 2px; right: 0px; font-size: 11px; display: none;"></label><img id="queue-icon" style="width: 20px; height: 23px;" src="https://storage.googleapis.com/support-kms-prod/SNP_8F339B792FAC26B3EA3509763CD37F5F6CA8_3269178_en_v0"></img></span>';
+			span.innerHTML = '<span class="yt-uix-button-icon" style="width: 20px; height: 20px; margin-right: 3px; "><label style="position: absolute; bottom: 2px; right: 0px; font-size: 11px; display: none;"></label><img id="queue-icon" style="width: 20px; height: 23px;" src="https://storage.googleapis.com/support-kms-prod/SNP_8F339B792FAC26B3EA3509763CD37F5F6CA8_3269178_en_v0"></img></span>';
 			var span2 = document.createElement('span');
 			span2.id='addToQueueText';
 			span.appendChild(span2);	
 			var a = document.getElementById('watch7-sentiment-actions'); //TODO what if they change this
 			if(a==undefined) return;
-			a.appendChild(span);	
+			a.appendChild(span);
+			span.setAttribute('status',getVideoStatus(getVideoIdFromUrl()));
+			span.setAttribute('data-video-ids',getVideoIdFromUrl());
 		}
-		
+
 		var span2 = document.getElementById('addToQueueText');
-		if(span2.innerHTML!=text){
-			span2.innerHTML=text;
-			var queueIcon = document.getElementById('queue-icon');
-			if(queueIcon!=undefined) queueIcon.src=src;
+		var queueIcon = document.getElementById('queue-icon');
+
+		if(span.getAttribute('status')==videoStatus.ADDING){
+			if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.QUEUED){
+				span.setAttribute('status',videoStatus.QUEUED);
+			} else return;
+			
+		} else if(span.getAttribute('status')==videoStatus.REMOVING){
+			if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
+				span.setAttribute('status',videoStatus.NOT_QUEUED);
+			} else return;
 		}
+
+		if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.QUEUED){
+			span2.innerHTML=Prop.REMOVE_FROM_QUEUE;
+			if(queueIcon!=undefined) queueIcon.src=Prop.REMOVE_FROM_QUEUE_ICON_URL;
+		} else if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
+			span2.innerHTML=Prop.ADD_TO_QUEUE;
+			if(queueIcon!=undefined) queueIcon.src=Prop.ADD_TO_QUEUE_ICON_URL;
+		}
+
 		registerAddQueueListener();
 	} catch(e){
 		//console.log(e);
@@ -383,14 +395,25 @@ function insertAddToQueueOptionOnVideos(){
 				q.style.width="22px";
 				q.style.height="22px";
 				q.innerHTML='<img width="20px" height="20px" src=""></img>';
+				q.setAttribute('status',getVideoStatus(q.getAttribute('data-video-ids')));
 			}
-			q.setAttribute('status',getVideoStatus(q.getAttribute('data-video-ids')));
 
-			if(q.getAttribute('status')==videoStatus.QUEUED){
+			if(q.getAttribute('status')==videoStatus.ADDING){
+				if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.QUEUED){
+					q.setAttribute('status',videoStatus.QUEUED);
+				} else continue;
+				
+			} else if(q.getAttribute('status')==videoStatus.REMOVING){
+				if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
+					q.setAttribute('status',videoStatus.NOT_QUEUED);
+				} else continue;
+			}
+
+			if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.QUEUED){
 				q.getElementsByTagName('img')[0].src=Prop.REMOVE_FROM_QUEUE_ICON_URL;
 				q.title=Prop.REMOVE_FROM_QUEUE_TITLE;
 				q.setAttribute('data-tooltip-text',Prop.REMOVE_FROM_QUEUE_TITLE);
-			} else {
+			} else if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
 				q.getElementsByTagName('img')[0].src=Prop.ADD_TO_QUEUE_ICON_URL;
 				q.title=Prop.ADD_TO_QUEUE_TITLE;
 				q.setAttribute('data-tooltip-text',Prop.ADD_TO_QUEUE_TITLE);
@@ -398,23 +421,26 @@ function insertAddToQueueOptionOnVideos(){
 					
 			q.onclick=function(){
 				console.log('video to be added/removed: '+this.getAttribute('data-video-ids'));
+
+				if(this.getAttribute('status')==videoStatus.ADDING || this.getAttribute('status')==videoStatus.REMOVING)
+					return;
+
 				if(this.getAttribute('status')==videoStatus.QUEUED){
 					removeVideoFromQueue(this.getAttribute('data-video-ids'));
-					this.innerHTML='<img  width="20px" height="20px" src="'+Prop.ADD_TO_QUEUE_ICON_URL+'"></img>';
-					this.title=Prop.ADD_TO_QUEUE_TITLE;
-					this.setAttribute('data-tooltip-text',Prop.ADD_TO_QUEUE_TITLE);
-					this.setAttribute('status',videoStatus.NOT_QUEUED);
+					this.title=Prop.REMOVING_FROM_QUEUE;
+					this.setAttribute('data-tooltip-text',Prop.REMOVING_FROM_QUEUE);
+					this.setAttribute('status',videoStatus.REMOVING);
 				} else {
 					if(currentQueue.size()==0) {
 						load(true);
 						addVideoToQueue(getVideoIdFromUrl());
 					}
 					addVideoToQueue(this.getAttribute('data-video-ids'));
-					this.innerHTML='<img width="20px" height="20px" src="'+Prop.REMOVE_FROM_QUEUE_ICON_URL+'"></img>';
-					this.title=Prop.REMOVE_FROM_QUEUE_TITLE;
-					this.setAttribute('data-tooltip-text',Prop.REMOVE_FROM_QUEUE_TITLE);
-					this.setAttribute('status',videoStatus.QUEUED);
+					this.title=Prop.ADDING_TO_QUEUE;
+					this.setAttribute('data-tooltip-text',Prop.ADDING_TO_QUEUE);
+					this.setAttribute('status',videoStatus.ADDING);
 				}
+				this.innerHTML='<img  width="20px" height="20px" src="'+Prop.PROGRESS_ICON_URL+'"></img>';
 				return false;
 			}
 			span.appendChild(q);
@@ -787,16 +813,12 @@ function registerAutoPlay(){
 function loadNextVideo(){
 	var a =document.getElementsByClassName('playlist-behavior-controls')[0];
 	var next= a.getElementsByTagName('a')[1];	
-	/*var msg = {"type":"noti","link":next};
-	sendMsgTobg(msg);*/
 	next.click();
 }
 
 function loadPreviousVideo(){
 	var a =document.getElementsByClassName('playlist-behavior-controls')[0];
 	var next= a.getElementsByTagName('a')[0];	
-	/*var msg = {"type":"noti","link":next};
-	sendMsgTobg(msg);*/
 	next.click();
 }
 
