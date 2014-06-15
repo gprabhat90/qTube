@@ -8,14 +8,14 @@
 	<style>
 		body{
 			margin: 0 auto;
-			width: 800px;
+			width: 1040px;
 			overflow: auto;
 		}
 		#container {
 			border-radius: 3px;
 			padding: 10px;
 			font-family: proxima-nova,Helvetica,Arial,sans-serif;
-			width: 95%;
+			width: 100%;
 			margin: 0 auto;
 			margin-top: 15px;
 			border-top: 2px solid #c1c1c1;
@@ -40,12 +40,11 @@
 			color: white;
 		}
 		.but {
-			width: 148px;
-			background-color: beige;
-			margin: 10px;
-			padding: 10px;
+			width: 80px;
+			margin: 5px;
+			padding: 2px;
 			float: left;
-			height: 150px;
+			height: 80px;
 			border-radius: 5px;
 			cursor: pointer;
 			color: white;
@@ -54,10 +53,9 @@
 			box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
 		}
 		.icon{
-			width: 50%;
+			width: 80%;
 			margin: 0 auto;
-			font-size: 75px;
-
+			font-size: 70px;
 		}
 		.main{
 			font-size: 22px;
@@ -67,8 +65,8 @@
 			margin-bottom: 5px;
 		}
 		.content{
-			display: none;
-			height: 300px;
+			//display: none;
+			height: 400px;
 			overflow-y: auto;
 		}
 		#code {
@@ -130,17 +128,17 @@
 		#hot-keys {
 			margin-bottom: 10px;
 		}
-		::-webkit-scrollbar {
-			width: 8px;
+		#faq-tab,#settings-tab,#more-tab{
+			float: left;
 		}
-
-		::-webkit-scrollbar-thumb {
-			background-color: #ccc;
+		#faq-tab{
+			width: 60%;
 		}
-
-		::-webkit-scrollbar-track {
-			background-color: #eaeaea;
-			border-left: 1px solid #ccc;
+		#settings-tab{
+			width: 30%;
+		}
+		#more-tab{
+			width: 10%;
 		}
 	</style>
 </head>
@@ -154,67 +152,6 @@
 			<span id="how-to-head" class="head-link" tab="">How To</span>
 		</div>
     	
-		<div class="content" id="more-tab">
-    		<div class="msg">Having Fun!</div>
-		    <div class="text">
-		    	Looks like You have been using qTube for quite some time now. Why not tells us how did you like it.
-		  	</div>
-
-			<div class="action">
-				<a href="http://www.google.com" target="_blank"><div class="but" id="bug">
-					<div class="icon">
-						<i class="fa fa-bug"></i>
-					</div>
-					<div class="main">
-						Bug/Feature
-					</div>
-					<div class="sec">
-						Report a Bug or submit a Feature Request
-					</div>
-				</div></a>
-				<a href="http://www.google.com" target="_blank"><div class="but" id="rate">
-					<div class="icon">
-						<i class="fa fa-star-half-full"></i>
-					</div>
-					<div class="main">
-						Rate! Review!
-					</div>
-					<div class="sec">
-						Rate this extension on webstore.				</div>
-				</div></a>
-				<a href="http://www.facebook.com/qtubechrome" target="_blank"><div class="but" id="share">
-					<div class="icon">
-						<i class="fa fa-share-alt"></i>
-					</div>
-					<div class="main">
-						Like! Share!
-					</div>
-					<div class="sec">
-						Like us on Facebook. (link given below).
-					</div>
-					
-				</div></a>
-				<a href="https://github.com/gprabhat90/qTube" target="_blank"><div class="but" id="code">
-					<div class="icon">
-						<i class="fa fa-github"></i>
-					</div>
-					<div class="main">
-						Explore Code
-					</div>
-					<div class="sec">
-						Play around with the code on Github.
-					</div>
-				</div></a>
-				
-			</div>
-			<div class="f-link">
-				<!-- <iframe src="http://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2FQtubeChrome&amp;width=140&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;share=true&amp;height=21&amp;appId=119643698141744" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:140px; height:21px;" allowTransparency="true"></iframe> -->
-			</div>
-			<div class="link">
-		      Remind me later
-			</div>
-		</div>
-
 		<div class="content" id="faq-tab">
     		<div class="qa">
     			<div class="ques">
@@ -275,7 +212,7 @@
     		</div>
 		</div>
 
-
+		
 
 		<div class="content" id="settings-tab">
     		<div class="setting">
@@ -288,6 +225,43 @@
     		</div>
 		</div>
 
+
+		<div class="content" id="more-tab">
+    		<div class="action">
+				<a href="http://www.google.com" target="_blank">
+					<div class="but" id="bug">
+						<div class="icon">
+							<i class="fa fa-bug"></i>
+						</div>
+					</div>
+				</a>
+				<a href="http://www.google.com" target="_blank">
+					<div class="but" id="rate">
+						<div class="icon">
+							<i class="fa fa-star-half-full"></i>
+						</div>
+						
+					</div>
+				</a>
+				<a href="http://www.facebook.com/qtubechrome" target="_blank">
+					<div class="but" id="share">
+					<div class="icon">
+						<i class="fa fa-share-alt"></i>
+					</div>
+					
+				</div></a>
+				<a href="https://github.com/gprabhat90/qTube" target="_blank"><div class="but" id="code">
+					<div class="icon">
+						<i class="fa fa-github"></i>
+					</div>
+					
+				</div></a>
+				
+			</div>
+			<div class="f-link">
+				<!-- <iframe src="http://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2FQtubeChrome&amp;width=140&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;share=true&amp;height=21&amp;appId=119643698141744" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:140px; height:21px;" allowTransparency="true"></iframe> -->
+			</div>
+					</div>
 
 	</div>
 </body>

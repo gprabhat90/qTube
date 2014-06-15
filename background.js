@@ -156,7 +156,7 @@ function getVideoIdFromUrl(url){
 }
 
 function queryObj(url) {
-    var result = {}, keyValuePairs = (url.split('?'))[1].split('&');
+    var result = {}, keyValuePairs = ((url.split('?'))[1].split('#'))[0].split('&');
 
     keyValuePairs.forEach(function(keyValuePair) {
         keyValuePair = keyValuePair.split('=');
@@ -265,27 +265,31 @@ function addVideoToQueue(videoId,tabId){
 	//console.log("current queue");
 	//console.log(queue);
 	console.log('querying for video_id: '+videoId);
-	var x = new XMLHttpRequest();
-	x.open("GET","http://gdata.youtube.com/feeds/api/videos/"+videoId+"?v=2&alt=jsonc",true);
-	x.onreadystatechange = function(){
-		if (x.readyState == 4) {
-			if(x.status == 200) {
-				var video =JSON.parse(x.responseText).data;
-				queue.addVideo(video);
-				console.log("queue after adding video");
-				console.log(queue);
+	try{
+		var x = new XMLHttpRequest();
+		x.open("GET","http://gdata.youtube.com/feeds/api/videos/"+videoId+"?v=2&alt=jsonc",true);
+		x.onreadystatechange = function(){
+			if (x.readyState == 4) {
+				if(x.status == 200) {
+					var video =JSON.parse(x.responseText).data;
+					queue.addVideo(video);
+					console.log("queue after adding video");
+					console.log(queue);
 
-				if(primaryTabId==undefined) setPrimaryTab(tabId);
-				var msg={"type":"videoAdded","queue":queue,"video":video};
-				if(primaryTabId!=undefined) {
-					chrome.tabs.sendMessage(primaryTabId,msg, function(res){});	
+					if(primaryTabId==undefined) setPrimaryTab(tabId);
+					var msg={"type":"videoAdded","queue":queue,"video":video};
+					if(primaryTabId!=undefined) {
+						chrome.tabs.sendMessage(primaryTabId,msg, function(res){});	
+					}
+					
 				}
-				
+				lock=false;
 			}
-			lock=false;
-		}
-	};
-	x.send();
+		};
+		x.send();
+	}catch(e){
+		lock=false;
+	}
 }
 
 var insertVideo = function (info) {
