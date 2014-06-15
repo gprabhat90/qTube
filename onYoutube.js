@@ -236,6 +236,8 @@ function registerMsgListener(){
 			}
 		} else if(msg.type=="status"){
 			sendResponse({"status":getStatus()});
+		} else if(msg.type=="loadQueue"){
+			load(true);
 		} else {
 			console.log("unknown msg type received ");
 		}
@@ -661,10 +663,15 @@ function insertQueueSkin(){
 
 function load(force){
 	var params= queryObj();
-	if((params['qq']==undefined || params['qq']==0)&&!force){
-		console.log('not to load the queue');
-		console.log('value of qq is: '+params['qq']);
-		return;
+
+	if(params['qq']==undefined && !isHashSet()){
+		if(force){
+			window.location.hash="qq";
+		} else{
+			console.log('not to load the queue');
+			console.log('value of qq is: '+params['qq']);
+			return;
+		}
 	} 
 	if(currentQueue==undefined){
 		console.log('current queue is undefined, will try in 1 sec');
@@ -691,6 +698,16 @@ function load(force){
 	setTimeout(registerAutoPlay,5000)
 	//console.log(mv);
 	skinPoll();
+}
+
+function isHashSet(){
+	try{
+		var hash = window.location.hash.substr(1);
+		return hash!=undefined && hash=='qq';
+	}catch(e){
+		return false;
+	}
+
 }
 
 function skinPoll(){
@@ -861,7 +878,7 @@ function reloadTab(video_id){
 function insertWelcomePageUrl(){
 	try{
     	document.getElementById('qtube-welcome').onclick = function(){
-    		var msg = {"type":"showWelcome"};
+    		var msg = {type:"createTab",url:Prop.WELCOME_PAGE};
 			sendMsgTobg(msg);
     	}
     } catch(e){

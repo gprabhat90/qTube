@@ -33,8 +33,8 @@
   },
 
 "content_scripts": [ {
-      "js": [ "onYoutube.js" ],
-      "css":["css/onYoutube.css"],
+      "js": [ "onYoutube.js","social.js" ],
+      "css":["css/onYoutube.css","css/font-awesome.min.css"],
       "matches": [ "http://www.youtube.com/*", "https://www.youtube.com/*" ],
       "run_at": "document_end"
    }],

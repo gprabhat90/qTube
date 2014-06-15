@@ -1,4 +1,137 @@
+		#container {
+			border-radius: 3px;
+			padding: 10px;
+			font-family: proxima-nova,Helvetica,Arial,sans-serif;
+			width: auto;
+			max-width: 1040px;
+			margin: 0 auto;
+			margin-top: 15px;
+			margin-bottom: 20px;
+			border-top: 2px solid #c1c1c1;
+			box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+			overflow: auto;
+			color: #888;
+			background-color: #fff;
+		}
+		#head {
+			width: 98%;
+			padding: 10px;
+			left: 0;
+			top: 0;
+			background: #fff;
+			z-index: 2;
+			border-bottom: 1px solid #ddd;
+			display: block;
+			margin-bottom: 10px;
+			color: #4dbdcb;
+		}
+		.active{
+			background-color: #4dbdcb;
+			color: white;
+		}
+		.but {
+			width: 148px;
+			background-color: beige;
+			margin: 10px;
+			padding: 10px;
+			float: left;
+			height: 150px;
+			border-radius: 5px;
+			cursor: pointer;
+			color: white;
+		}
+		.but:hover{
+			box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+		}
+		.icon{
+			width: 50%;
+			margin: 0 auto;
+			font-size: 75px;
 
+		}
+		.main{
+			font-size: 22px;
+		}
+		.sec{
+			font-size: 14px;
+			margin-bottom: 5px;
+		}
+		.content{
+			display: none;
+			height: 300px;
+			overflow-y: auto;
+		}
+		#code {
+			background-color: rgba(0, 128, 0, 0.72);
+		}
+		#share {
+			background-color: #3c8dbc;
+		}
+		#rate {
+			background-color: orange;
+		}
+		#bug {
+			background-color: rgba(255, 0, 0, 0.83);
+		}
+		.msg {
+			font-size: 40px;
+			margin: 10px;
+			margin-bottom: 20px;
+		}
+		.text {
+			margin: 10px;
+			margin-bottom: 40px;
+		}
+		.action{
+			overflow: auto;
+		}
+		.link{
+			float: right;
+			margin: 10px;
+			font-size: 10px;
+			text-decoration: underline;
+			color: blue;
+		}
+		.f-link {
+			margin: 10px;
+		}
+		.head-link {
+			cursor: pointer;
+			margin-right: 10px;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-bottom: 5px;
+			padding-top: 5px;
+			border-radius: 4px;
+		}
+		.qa {
+			margin-bottom: 20px;
+			padding: 10px;
+		}
+		.qa-head{
+			margin-right: 10px;
+		}
+		.ques-text{
+			color: #556c7b;
+		}
+		.setting{
+			padding: 10px;
+		}
+		#hot-keys {
+			margin-bottom: 10px;
+		}
+		::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		::-webkit-scrollbar-thumb {
+			background-color: #ccc;
+		}
+
+		::-webkit-scrollbar-track {
+			background-color: #eaeaea;
+			border-left: 1px solid #ccc;
+		}
 .qt-video-thumb{
 	margin-left: 0;
 	border: 2px solid #c03636;

@@ -177,8 +177,8 @@ chrome.runtime.onMessage.addListener(function(msg,sender,sendResponse) {
 	if(msg.type=="registerTab"){
 		//console.log(sender.tab);
 		registerTab(sender.tab.id);		
-	} else if(msg.type=="showWelcome"){
-		showWelcomePage();
+	} else if(msg.type=="createTab"){
+		createTab(msg.url);
 	} else if(msg.type=="addVideo"){
 		console.log("received request to add video");
 		handleVideoAdd(msg.video_id,sender.tab);
@@ -190,10 +190,48 @@ chrome.runtime.onMessage.addListener(function(msg,sender,sendResponse) {
 	} else if(msg.type=="getQueue"){
 		//console.log("received request to get queue");
 		sendResponse({"data":queue});
+	} else if(msg.type=="currentQueueClick"){
+		//console.log("received request to get queue");
+		handleCurrentQueueClick(sender.tab);
 	} else {
 		console.log("unknown msg type received ");
 	}
 });
+
+
+function handleCurrentQueueClick(senderTab){
+	if(primaryTabId==undefined){
+		sendLoadQueue(senderTab);
+	} else{
+		chrome.tabs.get(primaryTabId, function (tab){
+			if(tab==undefined){
+				sendLoadQueue(senderTab);
+			} else if(tab.status=="loading"){
+				setTimeout(function(){handleCurrentQueueClick(senderTab)},1000);
+				return;
+			} else{
+					var msg={"type":"status"};
+					chrome.tabs.sendMessage(primaryTabId,msg, function(res){
+						if(res==undefined || !res.status){
+							sendLoadQueue(senderTab);
+						} else {
+							setTabFocus(senderTab);
+						}
+						
+					});
+				}
+		});
+	} 
+}
+
+function sendLoadQueue(tab){
+	setPrimaryTab(tab.id);
+	chrome.tabs.sendMessage(primaryTabId,{type:"loadQueue"}, function(res){});
+}
+
+function setTabFocus(tab){
+
+}
 
 function registerTab(id){
 	if(hasKey(ytTabs,id)) return;
@@ -226,7 +264,7 @@ function addVideoToQueue(videoId,tabId){
 	//console.log(ytTabs);
 	//console.log("current queue");
 	//console.log(queue);
-
+	console.log('querying for video_id: '+videoId);
 	var x = new XMLHttpRequest();
 	x.open("GET","http://gdata.youtube.com/feeds/api/videos/"+videoId+"?v=2&alt=jsonc",true);
 	x.onreadystatechange = function(){
@@ -382,9 +420,9 @@ chrome.commands.onCommand.addListener(function(command) {
 });
 
 
-function showWelcomePage(){
+function createTab(url){
 	try{
-		chrome.tabs.create({url:chrome.extension.getURL('welcome.html')});
+		chrome.tabs.create({url:url});
 	}catch(e){
 		console.log(e);
 	}
@@ -417,7 +455,6 @@ function handleVideoAdd(videoId,videoTab){
 	} else {
 		doAdd(videoId,videoTab);
 	}
-
 }
 
 function doAdd(videoId,videoTab){
