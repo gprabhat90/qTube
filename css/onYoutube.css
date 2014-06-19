@@ -31,3 +31,8 @@
 .qt-thumb-clip {
 	position: absolute;
 }
+.qt-playlist{
+	min-height: 390px;
+	color: #999;
+	background: #1a1a1a;
+}
