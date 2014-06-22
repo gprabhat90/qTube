@@ -190,16 +190,16 @@ chrome.runtime.onMessage.addListener(function(msg,sender,sendResponse) {
 	} else if(msg.type=="getQueue"){
 		//console.log("received request to get queue");
 		sendResponse({"data":queue});
-	} else if(msg.type=="currentQueueClick"){
-		//console.log("received request to get queue");
-		handleCurrentQueueClick(sender.tab);
+	} else if(msg.type=="playAll"){
+		console.log("received request to playAll");
+		handlePlayAll(sender.tab);
 	} else {
 		console.log("unknown msg type received ");
 	}
 });
 
 
-function handleCurrentQueueClick(senderTab){
+function handlePlayAll(senderTab){
 	if(primaryTabId==undefined){
 		sendLoadQueue(senderTab);
 	} else{
@@ -207,7 +207,7 @@ function handleCurrentQueueClick(senderTab){
 			if(tab==undefined){
 				sendLoadQueue(senderTab);
 			} else if(tab.status=="loading"){
-				setTimeout(function(){handleCurrentQueueClick(senderTab)},1000);
+				setTimeout(function(){handlePlayAll(senderTab)},1000);
 				return;
 			} else{
 					var msg={"type":"status"};

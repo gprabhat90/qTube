@@ -186,6 +186,7 @@ function currentQueuePoll(){
 		try{
 			chrome.runtime.sendMessage(msg,function(response){
 				currentQueue.setVideos(response.data.videos);
+				updateVideoCountMastHead();
 			});
 		}catch(e){
 			console.log(e);
@@ -597,9 +598,6 @@ function getQueueInfo(){
 function getPreviousButton(){
 	try{
 		var a= document.createElement('a')
-		var index = currentQueue.getCurrentIndex();
-		if(currentQueue.hasPrevious()) index--;
-		else index=currentQueue.size()-1;
 		a.href='#';
 		a.className="yt-uix-button  prev-playlist-list-item yt-uix-tooltip yt-uix-tooltip-masked spf-link yt-uix-button-player-controls yt-uix-button-size-default yt-uix-button-empty"
 		a.title="Previous video"
@@ -612,15 +610,6 @@ function getPreviousButton(){
 function getNextButton(){
 	try{
 		var a= document.createElement('a')
-		var index = currentQueue.getCurrentIndex();
-		//console.log(currentQueue)
-		if(currentQueue.hasNext()) {
-			index++;
-		}
-		else {
-			//console.log('returned value of hasNext:'+currentQueue.hasNext())
-			index=0;
-		}
 		a.href='#';
 		a.className="yt-uix-button  next-playlist-list-item yt-uix-tooltip spf-link yt-uix-button-player-controls yt-uix-button-size-default yt-uix-button-empty"
 		a.title="Next video"
@@ -765,9 +754,6 @@ function refreshNextButton(){
 	try{
 		var controls = document.getElementsByClassName('playlist-behavior-controls')[0];
 		var a =controls.getElementsByTagName('a')[1];
-		/*var index = currentQueue.getCurrentIndex();
-		if(currentQueue.hasNext()) index++;
-		else index=0;*/
 		a.href='https://www.youtube.com/watch?v='+currentQueue.getNextVideoFrom(getVideoIdFromUrl()).id+'&qq=1';
 	}catch(e){
 		console.log(e);
@@ -778,9 +764,6 @@ function refreshPreviousButton(){
 	try{
 		var controls = document.getElementsByClassName('playlist-behavior-controls')[0];
 		var a =controls.getElementsByTagName('a')[0];
-		/*var index = currentQueue.getCurrentIndex();
-		if(currentQueue.hasPrevious()) index--;
-		else index=currentQueue.size()-1;*/
 		a.href='https://www.youtube.com/watch?v='+currentQueue.getPreviousVideoFrom(getVideoIdFromUrl()).id+'&qq=1';
 	}catch(e){
 		console.log(e);
@@ -933,7 +916,6 @@ function insertQTubeMastHead(){
 			mastHead.style.display='none';
 		}
 	}
-	
 }
 
 
@@ -947,6 +929,7 @@ function loadEverything(){
 	player.insertBefore(a,player.firstChild);
 	setUpHotKeyLink();
 	setUpMastheadClose();
+	setUpPlayAll();
 }
 
 function updateVideoCountMastHead(){
@@ -974,4 +957,12 @@ function setUpMastheadClose(){
 			document.getElementById('qt-container').style.display='none';
 		}
 	}catch(e){}	
+}
+
+function setUpPlayAll(){
+	try{
+		document.getElementById('head-play-all').onclick = function(){
+			sendMsgTobg({type:"playAll"});
+		}
+	}catch(e){}
 }
