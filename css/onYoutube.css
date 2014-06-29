@@ -1,4 +1,176 @@
+.qtube-masthead-link{
+	margin-right: 10px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	background-color: #4dbdcb;
+	border-radius: 3px;
+	color: white;
+	display: inline-block;
+	white-space: nowrap;
+	vertical-align: middle;
+	font-size: 15px;
+	cursor: pointer;
+}
+#qt-vcount{
+	background-color: white;
+	color: #4dbdcb;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	padding-left: 3px;
+	padding-right: 3px;
+	border-radius: 8px;
+	margin-left: 3px;
+}
+#qt-container {
+	height: 370px;
+	display: none;
+	border-radius: 3px;
+	padding: 10px;
+	padding-top: 3px;
+	background-color: #fff;
+	font-size: 15px;
+	font-family: proxima-nova,Helvetica,Arial,sans-serif;
+	width: auto;
+	margin: 0 auto;
+	margin-top: 15px;
+	margin-bottom: 20px;
+	border-top: 2px solid #3c8dbc;
+	box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+	overflow: auto;
+	color: #888;
+}
+.close{
+	float: right;
+	font-size: 20px;
+	line-height: 30px;
+	cursor: pointer;
+	vertical-align: middle;
+	color: black;
+}
+.qt-masthead-main{
+	width: 100%;
+	overflow: auto;
+	border-top: 1px solid #ddd;
+}
+#head {
+	width: 99%;
+	padding: 5px;
+	left: 0;
+	top: 0;
+	background: #fff;
+	display: block;
+	color: #4dbdcb;
+}
+.active{
+	background-color: #4dbdcb;
+	color: white;
+}
+.action{
+	float: right;
+}
+.but {
+	-webkit-transition: all 0.5s ease;
+	width: 60px;
+	margin: 5px;
+	padding: 2px;
+	float: left;
+	height: 60px;
+	border-radius: 5px;
+	cursor: pointer;
+	color: white;
+}
+.but:hover{
+	-webkit-transform:scale(1.2); 
+}
+.icon{
+	width: 80%;
+	margin: 0 auto;
+	font-size: 50px;
+	vertical-align: middle;
+}
+.main{
+	font-size: 22px;
+}
+.sec{
+	font-size: 14px;
+	margin-bottom: 5px;
+}
+.content{
+	
+}
+#code {
+	background-color: rgba(0, 128, 0, 0.72);
+}
+#share {
+	background-color: #3c8dbc;
+}
+#rate {
+	background-color: orange;
+}
+#bug {
+	background-color: rgba(255, 0, 0, 0.83);
+}
+.msg {
+	font-size: 40px;
+	margin: 10px;
+	margin-bottom: 20px;
+}
+.text {
+	margin: 10px;
+	margin-bottom: 40px;
+}
+.link{
+	float: right;
+	margin: 10px;
+	font-size: 10px;
+	text-decoration: underline;
+	color: blue;
+}
+.f-link {
+	margin: 10px;
+}
+.head-link {
+	margin-right: 10px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-bottom: 5px;
+	padding-top: 5px;
+	border-radius: 4px;
+}
+.qa,.hot-keys {
+	margin-bottom: 20px;
+	padding: 10px;
+}
+.ques{
+	margin-bottom: 3px;
+	font-weight: 600;
+	color: #444;
+}
+.qa-head{
+	margin-right: 10px;
+}
 
+.setting{
+	padding: 10px;
+	line-height: 30px;
+}
+#hot-keys {
+	margin-bottom: 10px;
+}
+#faq-tab,#settings-tab,#more-tab,.float-left{
+	float: left;
+}
+#faq-tab{
+	width: 60%;
+}
+#settings-tab{
+	width: 30%;
+}
+#more-tab{
+	width: 10%;
+}
 .qt-video-thumb{
 	margin-left: 0;
 	border: 2px solid #c03636;

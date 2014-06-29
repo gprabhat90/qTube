@@ -156,7 +156,7 @@ function getVideoIdFromUrl(url){
 }
 
 function queryObj(url) {
-    var result = {}, keyValuePairs = (url.split('?'))[1].split('&');
+    var result = {}, keyValuePairs = ((url.split('?'))[1].split('#'))[0].split('&');
 
     keyValuePairs.forEach(function(keyValuePair) {
         keyValuePair = keyValuePair.split('=');
@@ -177,8 +177,8 @@ chrome.runtime.onMessage.addListener(function(msg,sender,sendResponse) {
 	if(msg.type=="registerTab"){
 		//console.log(sender.tab);
 		registerTab(sender.tab.id);		
-	} else if(msg.type=="showWelcome"){
-		showWelcomePage();
+	} else if(msg.type=="createTab"){
+		createTab(msg.url);
 	} else if(msg.type=="addVideo"){
 		console.log("received request to add video");
 		handleVideoAdd(msg.video_id,sender.tab);
@@ -190,10 +190,50 @@ chrome.runtime.onMessage.addListener(function(msg,sender,sendResponse) {
 	} else if(msg.type=="getQueue"){
 		//console.log("received request to get queue");
 		sendResponse({"data":queue});
+	} else if(msg.type=="playAll"){
+		console.log("received request to playAll");
+		handlePlayAll(sender.tab);
 	} else {
 		console.log("unknown msg type received ");
 	}
 });
+
+
+function handlePlayAll(senderTab){
+	if(primaryTabId==undefined){
+		sendLoadQueue(senderTab);
+	} else{
+		chrome.tabs.get(primaryTabId, function (tab){
+			if(tab==undefined){
+				sendLoadQueue(senderTab);
+			} else if(tab.status=="loading"){
+				setTimeout(function(){handlePlayAll(senderTab)},1000);
+				return;
+			} else{
+					var msg={"type":"status"};
+					chrome.tabs.sendMessage(primaryTabId,msg, function(res){
+						if(res==undefined || !res.status){
+							sendLoadQueue(senderTab);
+						} else {
+							setTabFocus(senderTab);
+						}
+						
+					});
+				}
+		});
+	} 
+}
+
+function sendLoadQueue(tab){
+	setPrimaryTab(tab.id);
+	chrome.tabs.sendMessage(primaryTabId,{type:"loadQueue"}, function(res){});
+}
+
+function setTabFocus(tab){
+	try{
+		chrome.tabs.update(primaryTabId, {active:true}, function (){});
+	}catch(e){}
+}
 
 function registerTab(id){
 	if(hasKey(ytTabs,id)) return;
@@ -226,28 +266,32 @@ function addVideoToQueue(videoId,tabId){
 	//console.log(ytTabs);
 	//console.log("current queue");
 	//console.log(queue);
+	console.log('querying for video_id: '+videoId);
+	try{
+		var x = new XMLHttpRequest();
+		x.open("GET","http://gdata.youtube.com/feeds/api/videos/"+videoId+"?v=2&alt=jsonc",true);
+		x.onreadystatechange = function(){
+			if (x.readyState == 4) {
+				if(x.status == 200) {
+					var video =JSON.parse(x.responseText).data;
+					queue.addVideo(video);
+					console.log("queue after adding video");
+					console.log(queue);
 
-	var x = new XMLHttpRequest();
-	x.open("GET","http://gdata.youtube.com/feeds/api/videos/"+videoId+"?v=2&alt=jsonc",true);
-	x.onreadystatechange = function(){
-		if (x.readyState == 4) {
-			if(x.status == 200) {
-				var video =JSON.parse(x.responseText).data;
-				queue.addVideo(video);
-				console.log("queue after adding video");
-				console.log(queue);
-
-				if(primaryTabId==undefined) setPrimaryTab(tabId);
-				var msg={"type":"videoAdded","queue":queue,"video":video};
-				if(primaryTabId!=undefined) {
-					chrome.tabs.sendMessage(primaryTabId,msg, function(res){});	
+					if(primaryTabId==undefined) setPrimaryTab(tabId);
+					var msg={"type":"videoAdded","queue":queue,"video":video};
+					if(primaryTabId!=undefined) {
+						chrome.tabs.sendMessage(primaryTabId,msg, function(res){});	
+					}
+					
 				}
-				
+				lock=false;
 			}
-			lock=false;
-		}
-	};
-	x.send();
+		};
+		x.send();
+	}catch(e){
+		lock=false;
+	}
 }
 
 var insertVideo = function (info) {
@@ -382,9 +426,9 @@ chrome.commands.onCommand.addListener(function(command) {
 });
 
 
-function showWelcomePage(){
+function createTab(url){
 	try{
-		chrome.tabs.create({url:chrome.extension.getURL('welcome.html')});
+		chrome.tabs.create({url:url});
 	}catch(e){
 		console.log(e);
 	}
@@ -417,7 +461,6 @@ function handleVideoAdd(videoId,videoTab){
 	} else {
 		doAdd(videoId,videoTab);
 	}
-
 }
 
 function doAdd(videoId,videoTab){

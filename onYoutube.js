@@ -172,6 +172,7 @@ function runScript(){
 	currentQueuePoll();
 	registerMsgListener();
 	insertAddToQueueOptionOnVideos();
+	insertQTubeMastHead();
 	load(false);
 }
 
@@ -186,6 +187,7 @@ function currentQueuePoll(){
 		try{
 			chrome.runtime.sendMessage(msg,function(response){
 				currentQueue.setVideos(response.data.videos);
+				updateVideoCountMastHead();
 			});
 		}catch(e){
 			console.log(e);
@@ -236,6 +238,9 @@ function registerMsgListener(){
 			}
 		} else if(msg.type=="status"){
 			sendResponse({"status":getStatus()});
+		} else if(msg.type=="loadQueue"){
+			load(true);
+			loadNextVideo();
 		} else {
 			console.log("unknown msg type received ");
 		}
@@ -285,6 +290,8 @@ function sendMsgTobg(msg){
 	chrome.runtime.sendMessage(msg);
 }
 
+
+//this is bad design, refactor this later
 function insertAddToQueueOption(){
 	try{
 		
@@ -294,37 +301,43 @@ function insertAddToQueueOption(){
 			span.id='addToQueue';
 			span.style="margin-left:10px; cursor:pointer;";
 			span.className="yt-uix-button yt-uix-button-text yt-uix-button-size-default yt-uix-button-has-icon yt-uix-tooltip yt-uix-button-empty";
-			span.innerHTML = '<span class="yt-uix-button-icon" style="width: 20px; height: 20px; margin-right: 3px; "><label style="position: absolute; bottom: 2px; right: 0px; font-size: 11px; display: none;"></label><img id="queue-icon" style="width: 20px; height: 23px;" src="https://storage.googleapis.com/support-kms-prod/SNP_8F339B792FAC26B3EA3509763CD37F5F6CA8_3269178_en_v0"></img></span>';
+			span.innerHTML = '<span class="yt-uix-button-icon" style="width: 20px; height: 20px; margin-right: 3px; "><label style="position: absolute; bottom: 2px; right: 0px; font-size: 11px; display: none;"></label><img id="queue-icon" style="width: 20px; height: 23px;" src=""></img></span>';
 			var span2 = document.createElement('span');
 			span2.id='addToQueueText';
 			span.appendChild(span2);	
 			var a = document.getElementById('watch7-sentiment-actions'); //TODO what if they change this
 			if(a==undefined) return;
 			a.appendChild(span);
-			span.setAttribute('status',getVideoStatus(getVideoIdFromUrl()));
-			span.setAttribute('data-video-ids',getVideoIdFromUrl());
+			var id = getVideoIdFromUrl();
+			var status = getVideoStatus(id);
+			span.setAttribute('status',status);
+			span.setAttribute('data-video-ids',id);
+			if(status==videoStatus.QUEUED){
+				span2.innerHTML=Prop.REMOVE_FROM_QUEUE;
+				document.getElementById('queue-icon').src=Prop.REMOVE_FROM_QUEUE_ICON_URL;
+			} else{
+				span2.innerHTML=Prop.ADD_TO_QUEUE;
+				document.getElementById('queue-icon').src=Prop.ADD_TO_QUEUE_ICON_URL;
+			}
 		}
 
 		var span2 = document.getElementById('addToQueueText');
 		var queueIcon = document.getElementById('queue-icon');
 
-		if(span.getAttribute('status')==videoStatus.ADDING){
-			if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.QUEUED){
-				span.setAttribute('status',videoStatus.QUEUED);
-			} else return;
-			
-		} else if(span.getAttribute('status')==videoStatus.REMOVING){
-			if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
-				span.setAttribute('status',videoStatus.NOT_QUEUED);
-			} else return;
+		if(span.getAttribute('status')==videoStatus.ADDING && getVideoStatus(span.getAttribute('data-video-ids'))!=videoStatus.QUEUED){
+			return;
+		} else if(span.getAttribute('status')==videoStatus.REMOVING && getVideoStatus(span.getAttribute('data-video-ids'))!=videoStatus.NOT_QUEUED){
+			return;
 		}
 
-		if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.QUEUED){
+		if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.QUEUED && span.getAttribute('status')!=videoStatus.QUEUED){
 			span2.innerHTML=Prop.REMOVE_FROM_QUEUE;
 			if(queueIcon!=undefined) queueIcon.src=Prop.REMOVE_FROM_QUEUE_ICON_URL;
-		} else if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
+			span.setAttribute('status',videoStatus.QUEUED);
+		} else if(getVideoStatus(span.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED && span.getAttribute('status')!=videoStatus.NOT_QUEUED){
 			span2.innerHTML=Prop.ADD_TO_QUEUE;
 			if(queueIcon!=undefined) queueIcon.src=Prop.ADD_TO_QUEUE_ICON_URL;
+			span.setAttribute('status',videoStatus.NOT_QUEUED);
 		}
 
 		registerAddQueueListener();
@@ -343,7 +356,7 @@ function getVideoIdFromUrl(){
 }
 
 function queryObj() {
-    var result = {}, keyValuePairs = location.search.slice(1).split('&');
+    var result = {}, keyValuePairs = (location.search.slice(1).split('#'))[0].split('&');
 
     keyValuePairs.forEach(function(keyValuePair) {
         keyValuePair = keyValuePair.split('=');
@@ -396,27 +409,35 @@ function insertAddToQueueOptionOnVideos(){
 				q.style.height="22px";
 				q.innerHTML='<img width="20px" height="20px" src=""></img>';
 				q.setAttribute('status',getVideoStatus(q.getAttribute('data-video-ids')));
+
+				if(q.getAttribute('status')==videoStatus.QUEUED){
+					q.getElementsByTagName('img')[0].src=Prop.REMOVE_FROM_QUEUE_ICON_URL;
+					q.title=Prop.REMOVE_FROM_QUEUE_TITLE;
+					q.setAttribute('data-tooltip-text',Prop.REMOVE_FROM_QUEUE_TITLE);
+				} else{
+					q.getElementsByTagName('img')[0].src=Prop.ADD_TO_QUEUE_ICON_URL;
+					q.title=Prop.ADD_TO_QUEUE_TITLE;
+					q.setAttribute('data-tooltip-text',Prop.ADD_TO_QUEUE_TITLE);
+				}
+
 			}
 
-			if(q.getAttribute('status')==videoStatus.ADDING){
-				if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.QUEUED){
-					q.setAttribute('status',videoStatus.QUEUED);
-				} else continue;
-				
-			} else if(q.getAttribute('status')==videoStatus.REMOVING){
-				if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
-					q.setAttribute('status',videoStatus.NOT_QUEUED);
-				} else continue;
+			if(q.getAttribute('status')==videoStatus.ADDING && getVideoStatus(q.getAttribute('data-video-ids'))!=videoStatus.QUEUED){
+				continue;
+			} else if(q.getAttribute('status')==videoStatus.REMOVING && getVideoStatus(q.getAttribute('data-video-ids'))!=videoStatus.NOT_QUEUED){
+				continue;
 			}
 
-			if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.QUEUED){
+			if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.QUEUED && q.getAttribute('status')!=videoStatus.QUEUED){
 				q.getElementsByTagName('img')[0].src=Prop.REMOVE_FROM_QUEUE_ICON_URL;
 				q.title=Prop.REMOVE_FROM_QUEUE_TITLE;
 				q.setAttribute('data-tooltip-text',Prop.REMOVE_FROM_QUEUE_TITLE);
-			} else if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED){
+				q.setAttribute('status',videoStatus.QUEUED);
+			} else if(getVideoStatus(q.getAttribute('data-video-ids'))==videoStatus.NOT_QUEUED && q.getAttribute('status')!=videoStatus.NOT_QUEUED){
 				q.getElementsByTagName('img')[0].src=Prop.ADD_TO_QUEUE_ICON_URL;
 				q.title=Prop.ADD_TO_QUEUE_TITLE;
 				q.setAttribute('data-tooltip-text',Prop.ADD_TO_QUEUE_TITLE);
+				q.setAttribute('status',videoStatus.NOT_QUEUED);
 			}
 					
 			q.onclick=function(){
@@ -579,9 +600,6 @@ function getQueueInfo(){
 function getPreviousButton(){
 	try{
 		var a= document.createElement('a')
-		var index = currentQueue.getCurrentIndex();
-		if(currentQueue.hasPrevious()) index--;
-		else index=currentQueue.size()-1;
 		a.href='#';
 		a.className="yt-uix-button  prev-playlist-list-item yt-uix-tooltip yt-uix-tooltip-masked spf-link yt-uix-button-player-controls yt-uix-button-size-default yt-uix-button-empty"
 		a.title="Previous video"
@@ -594,15 +612,6 @@ function getPreviousButton(){
 function getNextButton(){
 	try{
 		var a= document.createElement('a')
-		var index = currentQueue.getCurrentIndex();
-		//console.log(currentQueue)
-		if(currentQueue.hasNext()) {
-			index++;
-		}
-		else {
-			//console.log('returned value of hasNext:'+currentQueue.hasNext())
-			index=0;
-		}
 		a.href='#';
 		a.className="yt-uix-button  next-playlist-list-item yt-uix-tooltip spf-link yt-uix-button-player-controls yt-uix-button-size-default yt-uix-button-empty"
 		a.title="Next video"
@@ -661,10 +670,15 @@ function insertQueueSkin(){
 
 function load(force){
 	var params= queryObj();
-	if((params['qq']==undefined || params['qq']==0)&&!force){
-		console.log('not to load the queue');
-		console.log('value of qq is: '+params['qq']);
-		return;
+
+	if(params['qq']==undefined && !isHashSet()){
+		if(force){
+			window.location.hash="qq";
+		} else{
+			console.log('not to load the queue');
+			console.log('value of qq is: '+params['qq']);
+			return;
+		}
 	} 
 	if(currentQueue==undefined){
 		console.log('current queue is undefined, will try in 1 sec');
@@ -691,6 +705,16 @@ function load(force){
 	setTimeout(registerAutoPlay,5000)
 	//console.log(mv);
 	skinPoll();
+}
+
+function isHashSet(){
+	try{
+		var hash = window.location.hash.substr(1);
+		return hash!=undefined && hash=='qq';
+	}catch(e){
+		return false;
+	}
+
 }
 
 function skinPoll(){
@@ -732,9 +756,6 @@ function refreshNextButton(){
 	try{
 		var controls = document.getElementsByClassName('playlist-behavior-controls')[0];
 		var a =controls.getElementsByTagName('a')[1];
-		/*var index = currentQueue.getCurrentIndex();
-		if(currentQueue.hasNext()) index++;
-		else index=0;*/
 		a.href='https://www.youtube.com/watch?v='+currentQueue.getNextVideoFrom(getVideoIdFromUrl()).id+'&qq=1';
 	}catch(e){
 		console.log(e);
@@ -745,9 +766,6 @@ function refreshPreviousButton(){
 	try{
 		var controls = document.getElementsByClassName('playlist-behavior-controls')[0];
 		var a =controls.getElementsByTagName('a')[0];
-		/*var index = currentQueue.getCurrentIndex();
-		if(currentQueue.hasPrevious()) index--;
-		else index=currentQueue.size()-1;*/
 		a.href='https://www.youtube.com/watch?v='+currentQueue.getPreviousVideoFrom(getVideoIdFromUrl()).id+'&qq=1';
 	}catch(e){
 		console.log(e);
@@ -767,6 +785,7 @@ function refresh(){
 	console.log('refreshing');
 	refreshNextButton();
 	refreshPreviousButton();
+	updateVideoCountMastHead();
 	//refreshIndexes();
 }
 
@@ -861,10 +880,91 @@ function reloadTab(video_id){
 function insertWelcomePageUrl(){
 	try{
     	document.getElementById('qtube-welcome').onclick = function(){
-    		var msg = {"type":"showWelcome"};
+    		var msg = {type:"createTab",url:Prop.WELCOME_PAGE};
 			sendMsgTobg(msg);
     	}
     } catch(e){
     	console.log(e);
     }
+}
+
+
+
+
+function insertQTubeMastHead(){
+	var b = document.createElement('span');
+	b.id="qtube-masthead";
+	b.className="qtube-masthead-link"
+	b.innerHTML='qTube <span id="qt-vcount"></span>';
+
+	var yt= document.getElementById('yt-masthead-user');
+	if(yt==undefined || yt==null) return;
+
+	yt.insertBefore(b,yt.firstChild);
+	loadEverything();
+	updateVideoCountMastHead();
+
+	b.onclick = function(){
+		if(document.getElementById('qt-container')==undefined){
+			loadEverything();		
+		}
+		var mastHead = document.getElementById('qt-container');
+		if(mastHead==undefined) {
+			return;
+		}
+		if(mastHead.style.display=='none'){
+			mastHead.style.display='block';
+		} else{
+			mastHead.style.display='none';
+		}
+	}
+}
+
+
+function loadEverything(){
+	var content = '<div id="head">			<span class="head-link">Current Queue have <span id="head-vcount"></span> videos <span id="head-play-all" class="qtube-masthead-link">Play All</span></span><span class="close"><span style="float:left"><iframe src="//www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2FQtubeChrome&amp;width=130&amp;layout=button_count&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=21&amp;appId=119643698141744" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:130px; height:21px;" allowTransparency="true"></iframe> </span><span id="close-masthead" class="close">X</span></span></div>    			<div class="qt-masthead-main"><div class="content" id="faq-tab">    		<div class="qa">    			<div class="ques">    				<span class="qa-head">Q.</span>    				<span class="ques-text">    					How do i add videos from youtube search results?    				</span>    			</div>    			<div class="ans">    				<span class="qa-head">A.</span>    				<span class="ans-text">    					You can add video by right click on the video link and choose add to queue option from qTube menu.    				</span>    			</div>    		</div>    		<div class="qa">    			<div class="ques">    				<span class="qa-head">Q.</span>    				<span class="ques-text">    					I accidently clicked on a link, now the queue is gone ?    				</span>    			</div>    			<div class="ans">    				<span class="qa-head">A.</span>    				<span class="ans-text">    					Relax, take a deep breath and press the back button of your browser.    				</span>    			</div>    		</div>    		<div class="qa">    			<div class="ques">    				<span class="qa-head">Q.</span>    				<span class="ques-text">    					Well The UI looks distored but it was working some time ago ?    				</span>    			</div>    			<div class="ans">    				<span class="qa-head">A.</span>    				<span class="ans-text">    					The UI is dependent on the youtube code also. So it may need an update.     					Please <a target="_blank" href="https://chrome.google.com/webstore/support/egplccjedibimkehalgfabhnkeecmmdl">Report it here.</a>    				</span>    			</div>    		</div>    		<div class="qa">    			<div class="ques">    				<span class="qa-head">Q.</span>    				<span class="ques-text">    					How do i follow the updates and features?    				</span>    			</div>    			<div class="ans">    				<span class="qa-head">A.</span>    				<span class="ans-text">    					Like us on facebook <a target="_blank" href="http://www.facebook.com/qtubechrome">facebook.com/qtubechrome</a>    				</span>    			</div>    		</div>		</div>				<div class="content" id="settings-tab">    		<div class="setting">    			<a href="#" id="hot-keys">Set up Keyboard Shortcut</a>	    			<div><div>Default Shortcuts</div>	    			<div><span class="ques">Ctrl+Period : </span> play/pause current video</div>	    			<div><span class="ques">Ctrl+Right Arrow : </span> play previous video</div> <div><span class="ques">Ctrl+Left Arrow: </span> play next video</div></div>    		</div>	</div>		<div class="content" id="more-tab">    		<div class="action">				<a href="https://chrome.google.com/webstore/support/egplccjedibimkehalgfabhnkeecmmdl" target="_blank">					<div title="Report Bug or Request Feature" class="but" id="bug">						<div class="icon">							<i class="fa fa-bug"></i>						</div>					</div>				</a>				<a href="https://chrome.google.com/webstore/detail/qtube-queue-youtube-video/egplccjedibimkehalgfabhnkeecmmdl/reviews" target="_blank">					<div title="Give a rating" class="but" id="rate">						<div class="icon">							<i class="fa fa-star-half-full"></i>						</div>											</div>				</a>				<a href="http://www.facebook.com/qtubechrome" target="_blank">					<div title="Like us on Facebook" class="but" id="share">					<div class="icon">						<i class="fa fa-facebook"></i>					</div>									</div></a>				<a href="https://github.com/gprabhat90/qTube" target="_blank"><div title="Explore Code on Github" class="but" id="code">					<div class="icon">						<i class="fa fa-github"></i>					</div>									</div></a>							</div>			<div class="f-link">				<!-- <iframe src="http://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2FQtubeChrome&amp;width=140&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;share=true&amp;height=21&amp;appId=119643698141744" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:140px; height:21px;" allowTransparency="true"></iframe> -->			</div>					</div></div>'
+	var a=document.createElement('div');
+	a.id="qt-container";
+	a.style.display='none';
+	a.innerHTML=content;
+	var player = document.getElementById('player');
+	player.insertBefore(a,player.firstChild);
+	setUpHotKeyLink();
+	setUpMastheadClose();
+	setUpPlayAll();
+}
+
+function updateVideoCountMastHead(){
+	try{
+		var cnt=0;
+		if(currentQueue!=undefined) cnt= currentQueue.size();
+		document.getElementById('qt-vcount').innerHTML=cnt;
+		document.getElementById('head-vcount').innerHTML=cnt;
+	} catch(e){
+
+	}
+}
+
+function setUpHotKeyLink(){
+	try{
+		document.getElementById('hot-keys').onclick = function(){
+			sendMsgTobg({type:"createTab",url:"chrome://extensions/configureCommands"});
+		}
+	}catch(e){}
+}
+
+function setUpMastheadClose(){
+	try{
+		document.getElementById('close-masthead').onclick = function(){
+			document.getElementById('qt-container').style.display='none';
+		}
+	}catch(e){}	
+}
+
+function setUpPlayAll(){
+	try{
+		document.getElementById('head-play-all').onclick = function(){
+			sendMsgTobg({type:"playAll"});
+		}
+	}catch(e){}
 }
