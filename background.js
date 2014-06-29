@@ -230,7 +230,9 @@ function sendLoadQueue(tab){
 }
 
 function setTabFocus(tab){
-
+	try{
+		chrome.tabs.update(primaryTabId, {active:true}, function (){});
+	}catch(e){}
 }
 
 function registerTab(id){

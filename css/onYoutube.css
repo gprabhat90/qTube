@@ -24,6 +24,7 @@
 	margin-left: 3px;
 }
 #qt-container {
+	height: 370px;
 	display: none;
 	border-radius: 3px;
 	padding: 10px;
