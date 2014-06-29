@@ -41,7 +41,7 @@
   "name": "qTube - Queue Youtube\u2122 Videos",
   "short_name": "qTube",
   "description": "Get more out of Youtube, use it as a music player! qTube allows u to build temporary youtube video queue",
-  "version": "1.7",
+  "version": "1.8",
 "icons": {
       "128": "icon.png",
       "16": "icon.png",

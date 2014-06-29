@@ -636,7 +636,7 @@ function getControlBars(){
 function getQueueSkin(){
 	var div = document.createElement('div')
 	div.id="watch-appbar-playlist"
-	div.className = "qt-playlist";
+	div.className = "qt-playlist player-height";
 	var div2 = document.createElement('div')
 	div2.className="main-content"
 
